@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 
-function Home() {
+function HomePage() {
   const [orders, setOrders] = useState([]);
-  const [name, setName] = useState('');
-  const [owner, setOwner] = useState('');
+  const [editOrderId, setEditOrderId] = useState(null);
+  const [formData, setFormData] = useState({ name: '', owner: '' });
   const [loading, setLoading] = useState(false);
 
-  // Fetch orders on component mount
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
@@ -21,24 +20,48 @@ function Home() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const newOrder = { name, owner, date: new Date().toISOString(), state: 'new' };
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newOrder),
-    });
+    // Check if we're adding or editing
+    if (editOrderId) {
+      const response = await fetch(`/api/orders/${editOrderId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    if (response.ok) {
-      const addedOrder = await response.json();
-      setOrders([...orders, addedOrder]);
-      setName('');
-      setOwner('');
-      // Optionally, clear other form fields
+      if (response.ok) {
+        const updatedOrder = await response.json();
+        setOrders(orders.map(order => order.id === editOrderId ? updatedOrder : order));
+        setEditOrderId(null);
+      }
     } else {
-      // Handle error
+      const newOrder = { ...formData, date: new Date().toISOString(), state: 'new' };
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newOrder),
+      });
+
+      if (response.ok) {
+        const addedOrder = await response.json();
+        setOrders([...orders, addedOrder]);
+      }
     }
+
+    setFormData({ name: '', owner: '' }); // Reset form
+  };
+
+  const handleEdit = (order) => {
+    setEditOrderId(order.id);
+    setFormData({ name: order.name, owner: order.owner });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   if (loading) return <p>Loading...</p>;
@@ -46,25 +69,52 @@ function Home() {
   return (
     <div>
       <h1>Orders</h1>
-      {orders.map((order) => (
-        <div key={order.id}>
-          <p>Name: {order.name}</p>
-          <p>Owner: {order.owner}</p>
-          <p>Date: {order.date}</p>
-          <p>State: {order.state}</p>
-          {/* Add edit and delete button here */}
-        </div>
-      ))}
-
-      <h2>Add a New Order</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Owner</th>
+            <th>Date</th>
+            <th>State</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <tr key={order.id}>
+              <td>{order.name}</td>
+              <td>{order.owner}</td>
+              <td>{order.date}</td>
+              <td>{order.state}</td>
+              <td>
+                <button onClick={() => handleEdit(order)}>Edit</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h2>{editOrderId ? 'Edit Order' : 'Add a New Order'}</h2>
       <form onSubmit={handleSubmit}>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Order Name" required />
-        <input type="text" value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Owner" required />
-        {/* Add fields for date and state if needed */}
-        <button type="submit">Add Order</button>
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleInputChange}
+          placeholder="Order Name"
+          required
+        />
+        <input
+          type="text"
+          name="owner"
+          value={formData.owner}
+          onChange={handleInputChange}
+          placeholder="Owner"
+          required
+        />
+        <button type="submit">{editOrderId ? 'Save Changes' : 'Add Order'}</button>
       </form>
     </div>
   );
 }
 
-export default Home;
+export default HomePage;
