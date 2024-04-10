@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import supabase from '../data/supabaseClient'; // Make sure to adjust the path
 
 function HomePage() {
   const [orders, setOrders] = useState([]);
@@ -6,12 +7,15 @@ function HomePage() {
   const [formData, setFormData] = useState({ name: '', owner: '' });
   const [loading, setLoading] = useState(false);
 
+  // Fetch orders from Supabase
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
-      const response = await fetch('/api/orders');
-      const data = await response.json();
-      setOrders(data);
+      let { data: orders, error } = await supabase
+        .from('orders')
+        .select('*');
+      if (error) console.error(error.message);
+      else setOrders(orders);
       setLoading(false);
     };
 
@@ -20,38 +24,29 @@ function HomePage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    // Check if we're adding or editing
+    setLoading(true);
+
     if (editOrderId) {
-      const response = await fetch(`/api/orders/${editOrderId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      // Editing an existing order
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ name: formData.name, owner: formData.owner })
+        .match({ id: editOrderId });
 
-      if (response.ok) {
-        const updatedOrder = await response.json();
-        setOrders(orders.map(order => order.id === editOrderId ? updatedOrder : order));
-        setEditOrderId(null);
-      }
+      if (error) console.error(error.message);
+      else setOrders(orders.map(order => order.id === editOrderId ? { ...order, ...formData } : order));
+      setEditOrderId(null);
     } else {
-      const newOrder = { ...formData, date: new Date().toISOString(), state: 'new' };
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newOrder),
-      });
+      // Adding a new order
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([{ name: formData.name, owner: formData.owner, state: 'new', date: new Date().toISOString() }]);
 
-      if (response.ok) {
-        const addedOrder = await response.json();
-        setOrders([...orders, addedOrder]);
-      }
+      if (error) console.error(error.message);
+      else setOrders([...orders, ...data]);
     }
-
     setFormData({ name: '', owner: '' }); // Reset form
+    setLoading(false);
   };
 
   const handleEdit = (order) => {
