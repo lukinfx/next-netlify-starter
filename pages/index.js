@@ -25,34 +25,50 @@ function HomePage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-
+  
     if (editOrderId) {
       // Editing an existing order
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('orders')
         .update({ name: formData.name, owner: formData.owner })
         .match({ id: editOrderId });
-
+  
       if (error) console.error(error.message);
-      else setOrders(orders.map(order => order.id === editOrderId ? { ...order, ...formData } : order));
+      else {
+        const updatedOrderIndex = orders.findIndex(order => order.id === editOrderId);
+        if (updatedOrderIndex > -1) {
+          // Create a new orders array with the updated order
+          const updatedOrders = [...orders];
+          updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...formData };
+          setOrders(updatedOrders);
+        }
+      }
       setEditOrderId(null);
     } else {
       // Adding a new order
-      await supabase
+      const { error: insertError } = await supabase
         .from('orders')
         .insert([{ name: formData.name, owner: formData.owner, state: 'new', date: new Date().toISOString() }]);
-      
-
-      let data = await supabase
-        .from('orders')
-        .select('*');
-      console.log(data);
-      setOrders([...orders, data]);
+  
+      if (insertError) {
+        console.error(insertError.message);
+      } else {
+        // Fetch all orders to update the state
+        const { data: selectData, error: selectError } = await supabase
+          .from('orders')
+          .select('*');
+  
+        if (selectError) {
+          console.error(selectError.message);
+        } else {
+          setOrders(selectData);
+        }
+      }
     }
     setFormData({ name: '', owner: '' }); // Reset form
     setLoading(false);
   };
-
+  
   const handleEdit = (order) => {
     setEditOrderId(order.id);
     setFormData({ name: order.name, owner: order.owner });
