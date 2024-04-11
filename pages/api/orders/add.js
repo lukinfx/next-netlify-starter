@@ -1,5 +1,5 @@
 // pages/api/orders/add.js
-import supabase from '../../../supabaseClient';
+import supabase from '../../../data/supabaseClient';
 
 export default async function handler(req, res) {
   const { data, error } = await supabase
