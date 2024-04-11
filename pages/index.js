@@ -38,12 +38,16 @@ function HomePage() {
       setEditOrderId(null);
     } else {
       // Adding a new order
-      const { data, error } = await supabase
+      await supabase
         .from('orders')
         .insert([{ name: formData.name, owner: formData.owner, state: 'new', date: new Date().toISOString() }]);
+      
 
-      if (error) console.error(error.message);
-      else setOrders([...orders, ...data]);
+      let data = await supabase
+        .from('orders')
+        .select('*');
+      console.log(data);
+      setOrders([...orders, data]);
     }
     setFormData({ name: '', owner: '' }); // Reset form
     setLoading(false);
