@@ -57,6 +57,12 @@
   .button:hover {
     background-color: #45a049;
   }
+
+  .thumbnail {
+    width: 100px; /* or any other dimensions */
+    height: auto;
+    /* Additional styles as needed */
+  }
   
   .input, .select {
     width: 100%;

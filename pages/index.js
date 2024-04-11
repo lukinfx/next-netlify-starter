@@ -8,18 +8,31 @@ function HomePage() {
   const [editOrderId, setEditOrderId] = useState(null);
   const [formData, setFormData] = useState({ name: '', owner: '' });
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   // Fetch orders from Supabase
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
-      let { data: orders, error } = await supabase
-        .from('orders')
-        .select('*');
-      if (error) console.error(error.message);
-      else setOrders(orders);
+      let { data: orders, error } = await supabase.from('orders').select('*');
+    
+      if (error) {
+        console.error(error.message);
+      } else {
+        // Get URLs for each order's image
+        const ordersWithImages = await Promise.all(orders.map(async (order) => {
+          if (order.image_path) {
+            order.imageUrl = await getImageUrl(order.image_path);
+            console.log(order.imageUrl)
+          }
+          return order;
+        }));
+    
+        setOrders(ordersWithImages);
+      }
       setLoading(false);
     };
+    
 
     fetchOrders();
   }, []);
@@ -28,47 +41,91 @@ function HomePage() {
     event.preventDefault();
     setLoading(true);
   
-    if (editOrderId) {
-      // Editing an existing order
-      const { error } = await supabase
-        .from('orders')
-        .update({ name: formData.name, owner: formData.owner, state: formData.state })
-        .match({ id: editOrderId });
+    let imagePath = '';
   
-      if (error) console.error(error.message);
-      else {
-        const updatedOrderIndex = orders.findIndex(order => order.id === editOrderId);
-        if (updatedOrderIndex > -1) {
-          // Create a new orders array with the updated order
-          const updatedOrders = [...orders];
-          updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...formData };
-          setOrders(updatedOrders);
-        }
-      }
-      setEditOrderId(null);
-    } else {
-      // Adding a new order
-      const { error: insertError } = await supabase
-        .from('orders')
-        .insert([{ name: formData.name, owner: formData.owner, state: 'new', date: new Date().toISOString() }]);
-  
-      if (insertError) {
-        console.error(insertError.message);
-      } else {
-        // Fetch all orders to update the state
-        const { data: selectData, error: selectError } = await supabase
-          .from('orders')
-          .select('*');
-  
-        if (selectError) {
-          console.error(selectError.message);
-        } else {
-          setOrders(selectData);
-        }
+    if (imageFile) { // This now applies to both new orders and edits that include changing the image
+      try {
+        imagePath = await uploadImage(imageFile);
+      } catch (error) {
+        console.error('Error uploading image:', error.message);
+        setLoading(false);
+        return; // Stop the form submission if the image upload fails
       }
     }
-    setFormData({ name: '', owner: '' }); // Reset form
+  
+    if (editOrderId) {
+      // If editing an existing order and there's a new image, include the imagePath in the update
+      const updatedData = { name: formData.name, owner: formData.owner, state: formData.state };
+      if (imagePath) updatedData.image_path = imagePath;
+  
+      const { error } = await supabase
+        .from('orders')
+        .update(updatedData)
+        .match({ id: editOrderId });
+  
+        if (error) console.error(error.message);
+        else {
+          const updatedOrderIndex = orders.findIndex(order => order.id === editOrderId);
+          if (updatedOrderIndex > -1) {
+            // Create a new orders array with the updated order
+            const updatedOrders = [...orders];
+            updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...formData };
+            setOrders(updatedOrders);
+          }
+        }
+        setEditOrderId(null);
+  
+    } else {
+      // Adding a new order, include the image path only if there is one
+      const newOrderData = {
+        name: formData.name,
+        owner: formData.owner,
+        state: 'new',
+        date: new Date().toISOString(),
+      };
+      if (imagePath) newOrderData.image_path = imagePath;
+  
+      const { error: insertError } = await supabase
+        .from('orders')
+        .insert([newOrderData]);
+  
+        if (insertError) {
+          console.error(insertError.message);
+        } else {
+          // Fetch all orders to update the state
+          const { data: selectData, error: selectError } = await supabase
+            .from('orders')
+            .select('*');
+    
+          if (selectError) {
+            console.error(selectError.message);
+          } else {
+            setOrders(selectData);
+          }
+        }
+    }
+  
+    // Reset form and image file state after submission
+    setFormData({ name: '', owner: '', state: '' });
+    setImageFile(null);
     setLoading(false);
+  };
+
+  const getImageUrl = async (path) => {
+    console.log('path', path);
+
+    const { publicURL, error } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(path); // Use the fullPath variable here
+   
+    if (error) {
+      console.error('Error getting image URL:', error.message);
+      return null;
+    }
+    
+    console.log('publicURL', publicURL);
+    return publicURL;
   };
   
   const handleEdit = (order) => {
@@ -76,6 +133,30 @@ function HomePage() {
     setFormData({ name: order.name, owner: order.owner, state: order.state });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files.length) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  async function uploadImage(file) {
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExtension}`;
+    const filePath = `orders/${fileName}`;
+  
+    const { data, error } = await supabase.storage
+      .from('images') // Make sure this bucket exists in your Supabase project
+      .upload(filePath, file);
+  
+    if (error) {
+      throw new Error(error.message);
+    }
+  
+    // Return the file path if you want to save the path in the database
+    // This path is how you will reference the image in your Supabase Storage
+    return filePath;
+  }
+  
   const handleDelete = async (orderId) => {
     console.log('delete', orderId);
   
@@ -113,6 +194,7 @@ function HomePage() {
             <table className={styles.table}>
               <thead>
                 <tr className={styles.tr}>
+                  <th className={styles.th}>Thumbnail</th>
                   <th className={styles.th}>Name</th>
                   <th className={styles.th}>Owner</th>
                   <th className={styles.th}>Date</th>
@@ -123,6 +205,11 @@ function HomePage() {
               <tbody className={styles.tbody}>
                 {orders.map((order) => (
                   <tr key={order.id} className={styles.tr}>
+                    <td className={styles.td}>
+                      {order.imageUrl && (
+                        <img src={order.imageUrl} alt="Order Thumbnail" className={styles.thumbnail} />
+                      )}
+                    </td>
                     <td className={styles.td}>{order.name}</td>
                     <td className={styles.td}>{order.owner}</td>
                     <td className={styles.td}>{new Date(order.date).toLocaleDateString()}</td>
@@ -154,6 +241,14 @@ function HomePage() {
               placeholder="Owner"
               required
             />
+            <input
+              type="file"
+              name="image"
+              onChange={handleFileChange}
+              accept="image/*"
+            />
+
+          
             {editOrderId &&
             (
               <input
