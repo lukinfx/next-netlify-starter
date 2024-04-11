@@ -76,6 +76,25 @@ function HomePage() {
     setFormData({ name: order.name, owner: order.owner, state: order.state });
   };
 
+  const handleDelete = async (orderId) => {
+    console.log('delete', orderId);
+  
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .delete()
+        .match({ id: orderId });
+  
+      if (error) throw error;
+  
+      console.log('Deleted data:', data);
+      // Update the local state to reflect the deletion
+      setOrders(orders.filter(order => order.id !== orderId));
+    } catch (error) {
+      console.error('Error deleting order:', error);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -110,6 +129,7 @@ function HomePage() {
                     <td className={styles.td}>{order.state}</td>
                     <td className={styles.td}>
                       <button onClick={() => handleEdit(order)} className={styles.button}>Edit</button>
+                      <button onClick={() => handleDelete(order.id)} className={styles.button}>Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -134,14 +154,18 @@ function HomePage() {
               placeholder="Owner"
               required
             />
-            <input
-              type="text"
-              name="state"
-              value={formData.state}
-              onChange={handleInputChange}
-              placeholder="State"
-              required
-            />
+            {editOrderId &&
+            (
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                placeholder="State"
+                required
+              />
+            )}
+            
             <button type="submit" className={styles.button}>{editOrderId ? 'Save Changes' : 'Add Order'}</button>
           </form>
         </>
