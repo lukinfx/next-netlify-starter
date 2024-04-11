@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import supabase from '../data/supabaseClient'; // Make sure to adjust the path
+import styles from '../styles/HomePage.module.css'; // Adjust the path according to your file structure
+
 
 function HomePage() {
   const [orders, setOrders] = useState([]);
@@ -82,60 +84,68 @@ function HomePage() {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
+    <div className={styles.container}>
       <h1>Orders</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Owner</th>
-            <th>Date</th>
-            <th>State</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((order) => (
-            <tr key={order.id}>
-              <td>{order.name}</td>
-              <td>{order.owner}</td>
-              <td>{order.date}</td>
-              <td>{order.state}</td>
-              <td>
-                <button onClick={() => handleEdit(order)}>Edit</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <h2>{editOrderId ? 'Edit Order' : 'Add a New Order'}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          placeholder="Order Name"
-          required
-        />
-        <input
-          type="text"
-          name="owner"
-          value={formData.owner}
-          onChange={handleInputChange}
-          placeholder="Owner"
-          required
-        />
-        <input
-        type="text"
-        name="state"
-        value={formData.state}
-        onChange={handleInputChange}
-        placeholder="State"
-        required
-      />
-        <button type="submit">{editOrderId ? 'Save Changes' : 'Add Order'}</button>
-      </form>
+      {loading ? (
+        <p className={styles.loading}>Loading...</p>
+      ) : (
+        <>
+           <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead>
+                <tr className={styles.tr}>
+                  <th className={styles.th}>Name</th>
+                  <th className={styles.th}>Owner</th>
+                  <th className={styles.th}>Date</th>
+                  <th className={styles.th}>State</th>
+                  <th className={styles.th}>Actions</th>
+                </tr>
+              </thead>
+              <tbody className={styles.tbody}>
+                {orders.map((order) => (
+                  <tr key={order.id} className={styles.tr}>
+                    <td className={styles.td}>{order.name}</td>
+                    <td className={styles.td}>{order.owner}</td>
+                    <td className={styles.td}>{new Date(order.date).toLocaleDateString()}</td>
+                    <td className={styles.td}>{order.state}</td>
+                    <td className={styles.td}>
+                      <button onClick={() => handleEdit(order)} className={styles.button}>Edit</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <h2>{editOrderId ? 'Edit Order' : 'Add a New Order'}</h2>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Order Name"
+              required
+            />
+            <input
+              type="text"
+              name="owner"
+              value={formData.owner}
+              onChange={handleInputChange}
+              placeholder="Owner"
+              required
+            />
+            <input
+              type="text"
+              name="state"
+              value={formData.state}
+              onChange={handleInputChange}
+              placeholder="State"
+              required
+            />
+            <button type="submit" className={styles.button}>{editOrderId ? 'Save Changes' : 'Add Order'}</button>
+          </form>
+        </>
+      )}
     </div>
   );
 }
