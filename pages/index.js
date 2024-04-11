@@ -30,7 +30,7 @@ function HomePage() {
       // Editing an existing order
       const { error } = await supabase
         .from('orders')
-        .update({ name: formData.name, owner: formData.owner })
+        .update({ name: formData.name, owner: formData.owner, state: formData.state })
         .match({ id: editOrderId });
   
       if (error) console.error(error.message);
@@ -71,7 +71,7 @@ function HomePage() {
   
   const handleEdit = (order) => {
     setEditOrderId(order.id);
-    setFormData({ name: order.name, owner: order.owner });
+    setFormData({ name: order.name, owner: order.owner, state: order.state });
   };
 
   const handleInputChange = (e) => {
@@ -126,6 +126,14 @@ function HomePage() {
           placeholder="Owner"
           required
         />
+        <input
+        type="text"
+        name="state"
+        value={formData.state}
+        onChange={handleInputChange}
+        placeholder="State"
+        required
+      />
         <button type="submit">{editOrderId ? 'Save Changes' : 'Add Order'}</button>
       </form>
     </div>
