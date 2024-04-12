@@ -114,35 +114,32 @@ function HomePage() {
   const getImageUrl = async (path) => {
     console.log('path', path);
 
-    const { publicURL, error } = supabase
-      .storage
-      .from('images')
-      .getPublicUrl(path); // Use the fullPath variable here
-   
-    if (error) {
-      console.error('Error getting image URL:', error.message);
-      return null;
-    }
-    
-    console.log('publicURL', publicURL);
-    return publicURL;
-  };
-  
-  const handleEdit = (order) => {
-    setEditOrderId(order.id);
-    setFormData({ name: order.name, owner: order.owner, state: order.state });
-  };
+    try {
+        const { publicURL, error } = await supabase
+            .storage
+            .from('images')
+            .getPublicUrl(path);
 
-  const handleFileChange = (e) => {
-    if (e.target.files.length) {
-      setImageFile(e.target.files[0]);
+        if (error) {
+            console.error('Error getting image URL:', error.message);
+            return null;
+        }
+
+        console.log('publicURL', publicURL);
+        //return publicURL;
+        let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/"+path;
+        console.log(a);
+        return a;
+    } catch (error) {
+        console.error('Error with getting public URL:', error.message);
+        return null;
     }
   };
 
   async function uploadImage(file) {
     const fileExtension = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExtension}`;
-    const filePath = `orders/${fileName}`;
+    const filePath = `${fileName}`;
   
     const { data, error } = await supabase.storage
       .from('images') // Make sure this bucket exists in your Supabase project
@@ -156,6 +153,18 @@ function HomePage() {
     // This path is how you will reference the image in your Supabase Storage
     return filePath;
   }
+  
+  const handleEdit = (order) => {
+    setEditOrderId(order.id);
+    setFormData({ name: order.name, owner: order.owner, state: order.state });
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files.length) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
   
   const handleDelete = async (orderId) => {
     console.log('delete', orderId);
