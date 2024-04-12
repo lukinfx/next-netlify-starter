@@ -190,11 +190,18 @@ function HomePage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleDiscardChanges = () => {
+    // Reset the form data to empty or initial values
+    setFormData({ name: '', owner: '', state: '' });
+    setImageFile(null);
+    setEditOrderId(null); // Clear edit mode
+  };
+
   if (loading) return <p>Loading...</p>;
 
   return (
     <div className={styles.container}>
-      <h1>Orders</h1>
+      <h1 className={styles.h1}>Orders</h1>
       {loading ? (
         <p className={styles.loading}>Loading...</p>
       ) : (
@@ -232,45 +239,68 @@ function HomePage() {
               </tbody>
             </table>
           </div>
-          <h2>{editOrderId ? 'Edit Order' : 'Add a New Order'}</h2>
+          <h2 className={styles.h2}>{editOrderId ? 'Edit Order' : 'Add a New Order'}</h2>
           <form onSubmit={handleSubmit} className={styles.form}>
-            <input
+            <div>
+              <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Order Name"
               required
-            />
-            <input
-              type="text"
-              name="owner"
-              value={formData.owner}
-              onChange={handleInputChange}
-              placeholder="Owner"
-              required
-            />
-            <input
-              type="file"
-              name="image"
-              onChange={handleFileChange}
-              accept="image/*"
-            />
+              className={styles.input}
+              />
+            </div>
+            
+            <div>
+              <input
+                type="text"
+                name="owner"
+                value={formData.owner}
+                onChange={handleInputChange}
+                placeholder="Owner"
+                required
+                className={styles.input}
+              />
+            </div>
+            {!editOrderId && (
+              <div>
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className={styles.input}
+                />
+              </div>
+            )}
 
           
             {editOrderId &&
             (
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={handleInputChange}
-                placeholder="State"
-                required
-              />
+              <div>
+                <input
+                  type="text"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  placeholder="State"
+                  required
+                  className={styles.input}
+                />
+              </div>
             )}
+            <div>
+              {editOrderId &&
+              (
+                <button type="button" onClick={handleDiscardChanges} className={`${styles.button} ${styles.buttonDiscard}`}>
+                    Discard Changes
+                  </button>
+              )}
+              <button type="submit" className={`${styles.button} ${styles.buttonSave}`}>{editOrderId ? 'Save Changes' : 'Add Order'}</button>
+            </div>
             
-            <button type="submit" className={styles.button}>{editOrderId ? 'Save Changes' : 'Add Order'}</button>
           </form>
         </>
       )}
