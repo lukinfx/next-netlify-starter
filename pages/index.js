@@ -5,7 +5,14 @@ import styles from '../styles/HomePage.module.css'; // Adjust the path according
 function HomePage() {
   const [orders, setOrders] = useState([]);
   const [editOrderId, setEditOrderId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', owner: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    member: '',
+    source: '',
+    owner: '',
+    state: 'new',
+    paid: false,
+  });
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
 
@@ -22,7 +29,6 @@ function HomePage() {
         const ordersWithImages = await Promise.all(orders.map(async (order) => {
           if (order.image_path) {
             order.imageUrl = await getImageUrl(order.image_path);
-            console.log(order.imageUrl)
           }
           return order;
         }));
@@ -32,7 +38,6 @@ function HomePage() {
       setLoading(false);
     };
     
-
     fetchOrders();
   }, []);
 
@@ -54,7 +59,7 @@ function HomePage() {
   
     if (editOrderId) {
       // If editing an existing order and there's a new image, include the imagePath in the update
-      const updatedData = { name: formData.name, owner: formData.owner, state: formData.state };
+      const updatedData = { ...formData };
       if (imagePath) updatedData.image_path = imagePath;
   
       const { error } = await supabase
@@ -77,9 +82,7 @@ function HomePage() {
     } else {
       // Adding a new order, include the image path only if there is one
       const newOrderData = {
-        name: formData.name,
-        owner: formData.owner,
-        state: 'new',
+        ...formData,
         date: new Date().toISOString(),
       };
       if (imagePath) newOrderData.image_path = imagePath;
@@ -105,33 +108,38 @@ function HomePage() {
     }
   
     // Reset form and image file state after submission
-    setFormData({ name: '', owner: '', state: '' });
+    setFormData({
+      name: '',
+      member: '',
+      source: '',
+      owner: '',
+      state: 'new',
+      paid: false,
+    });
     setImageFile(null);
     setLoading(false);
   };
 
   const getImageUrl = async (path) => {
-    console.log('path', path);
-
     try {
-        const { publicURL, error } = await supabase
-            .storage
-            .from('images')
-            .getPublicUrl(path);
+      const { publicURL, error } = await supabase
+        .storage
+        .from('images')
+        .getPublicUrl(path);
 
-        if (error) {
-            console.error('Error getting image URL:', error.message);
-            return null;
-        }
-
-        console.log('publicURL', publicURL);
-        //return publicURL;
-        let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/"+path;
-        console.log(a);
-        return a;
-    } catch (error) {
-        console.error('Error with getting public URL:', error.message);
+      if (error) {
+        console.error('Error getting image URL:', error.message);
         return null;
+      }
+
+      console.log('publicURL', publicURL);
+      //return publicURL;
+      let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/"+path;
+      console.log(a);
+      return a;
+    } catch (error) {
+      console.error('Error with getting public URL:', error.message);
+      return null;
     }
   };
 
@@ -155,7 +163,14 @@ function HomePage() {
   
   const handleEdit = (order) => {
     setEditOrderId(order.id);
-    setFormData({ name: order.name, owner: order.owner, state: order.state });
+    setFormData({
+      name: order.name,
+      member: order.member,
+      source: order.source,
+      owner: order.owner,
+      state: order.state,
+      paid: order.paid,
+    });
   };
 
   const handleFileChange = (e) => {
@@ -209,17 +224,27 @@ function HomePage() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handleDiscardChanges = () => {
     // Reset the form data to empty or initial values
-    setFormData({ name: '', owner: '', state: '' });
+    setFormData({
+      name: '',
+      member: '',
+      source: '',
+      owner: '',
+      state: 'new',
+      paid: false,
+    });
     setImageFile(null);
     setEditOrderId(null); // Clear edit mode
   };
-  
+
   if (loading) return <p>Loading...</p>;
 
   return (
@@ -229,15 +254,18 @@ function HomePage() {
         <p className={styles.loading}>Loading...</p>
       ) : (
         <>
-           <div className={styles.tableContainer}>
+          <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
                 <tr className={styles.tr}>
                   <th className={styles.th}>Thumbnail</th>
                   <th className={styles.th}>Name</th>
+                  <th className={styles.th}>Member</th>
+                  <th className={styles.th}>Source</th>
                   <th className={styles.th}>Owner</th>
                   <th className={styles.th}>Date</th>
                   <th className={styles.th}>State</th>
+                  <th className={styles.th}>Paid</th>
                   <th className={styles.th}>Actions</th>
                 </tr>
               </thead>
@@ -250,9 +278,12 @@ function HomePage() {
                       )}
                     </td>
                     <td className={styles.td}>{order.name}</td>
+                    <td className={styles.td}>{order.member}</td>
+                    <td className={styles.td}>{order.source}</td>
                     <td className={styles.td}>{order.owner}</td>
                     <td className={styles.td}>{new Date(order.date).toLocaleDateString()}</td>
                     <td className={styles.td}>{order.state}</td>
+                    <td className={styles.td}>{order.paid ? 'Yes' : 'No'}</td>
                     <td className={styles.td}>
                       <button onClick={() => handleEdit(order)} className={styles.button}>Edit</button>
                       <button onClick={() => handleDelete(order.id)} className={styles.button}>Delete</button>
@@ -266,16 +297,37 @@ function HomePage() {
           <form onSubmit={handleSubmit} className={styles.form}>
             <div>
               <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Order Name"
-              required
-              className={styles.input}
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Order Name"
+                required
+                className={styles.input}
               />
             </div>
-            
+            <div>
+              <input
+                type="text"
+                name="member"
+                value={formData.member}
+                onChange={handleInputChange}
+                placeholder="Member"
+                required
+                className={styles.input}
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                name="source"
+                value={formData.source}
+                onChange={handleInputChange}
+                placeholder="Source"
+                required
+                className={styles.input}
+              />
+            </div>
             <div>
               <input
                 type="text"
@@ -286,6 +338,32 @@ function HomePage() {
                 required
                 className={styles.input}
               />
+            </div>
+            <div>
+              <select
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                required
+                className={styles.input}
+              >
+                <option value="new">New</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div>
+              <label className={styles.checkboxLabel}>
+                Paid:
+                <input
+                  type="checkbox"
+                  name="paid"
+                  checked={formData.paid}
+                  onChange={handleInputChange}
+                  className={styles.checkbox}
+                />
+              </label>
             </div>
             {!editOrderId && (
               <div>
@@ -298,32 +376,16 @@ function HomePage() {
                 />
               </div>
             )}
-
-          
-            {editOrderId &&
-            (
-              <div>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  placeholder="State"
-                  required
-                  className={styles.input}
-                />
-              </div>
-            )}
             <div>
-              {editOrderId &&
-              (
+              {editOrderId && (
                 <button type="button" onClick={handleDiscardChanges} className={`${styles.button} ${styles.buttonDiscard}`}>
-                    Discard Changes
-                  </button>
+                  Discard Changes
+                </button>
               )}
-              <button type="submit" className={`${styles.button} ${styles.buttonSave}`}>{editOrderId ? 'Save Changes' : 'Add Order'}</button>
+              <button type="submit" className={`${styles.button} ${styles.buttonSave}`}>
+                {editOrderId ? 'Save Changes' : 'Add Order'}
+              </button>
             </div>
-            
           </form>
         </>
       )}
