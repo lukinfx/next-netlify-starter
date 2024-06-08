@@ -5,7 +5,7 @@ import styles from '../styles/HomePage.module.css'; // Adjust the path according
 function HomePage() {
   const [orders, setOrders] = useState([]);
   const [editOrderId, setEditOrderId] = useState(null);
-  const [formData, setFormData] = useState({
+  const [editFormData, setEditFormData] = useState({
     name: '',
     member: '',
     source: '',
@@ -20,7 +20,7 @@ function HomePage() {
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
-      let { data: orders, error } = await supabase.from('orders').select('*');
+      let { data: orders, error } = await supabase.from('orders').select('*').order('date');
     
       if (error) {
         console.error(error.message);
@@ -41,129 +41,9 @@ function HomePage() {
     fetchOrders();
   }, []);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-  
-    let imagePath = '';
-  
-    if (imageFile) { // This now applies to both new orders and edits that include changing the image
-      try {
-        imagePath = await uploadImage(imageFile);
-      } catch (error) {
-        console.error('Error uploading image:', error.message);
-        setLoading(false);
-        return; // Stop the form submission if the image upload fails
-      }
-    }
-  
-    if (editOrderId) {
-      // If editing an existing order and there's a new image, include the imagePath in the update
-      const updatedData = { ...formData };
-      if (imagePath) updatedData.image_path = imagePath;
-  
-      const { error } = await supabase
-        .from('orders')
-        .update(updatedData)
-        .match({ id: editOrderId });
-  
-        if (error) console.error(error.message);
-        else {
-          const updatedOrderIndex = orders.findIndex(order => order.id === editOrderId);
-          if (updatedOrderIndex > -1) {
-            // Create a new orders array with the updated order
-            const updatedOrders = [...orders];
-            updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...formData };
-            setOrders(updatedOrders);
-          }
-        }
-        setEditOrderId(null);
-  
-    } else {
-      // Adding a new order, include the image path only if there is one
-      const newOrderData = {
-        ...formData,
-        date: new Date().toISOString(),
-      };
-      if (imagePath) newOrderData.image_path = imagePath;
-  
-      const { error: insertError } = await supabase
-        .from('orders')
-        .insert([newOrderData]);
-  
-        if (insertError) {
-          console.error(insertError.message);
-        } else {
-          // Fetch all orders to update the state
-          const { data: selectData, error: selectError } = await supabase
-            .from('orders')
-            .select('*');
-    
-          if (selectError) {
-            console.error(selectError.message);
-          } else {
-            setOrders(selectData);
-          }
-        }
-    }
-  
-    // Reset form and image file state after submission
-    setFormData({
-      name: '',
-      member: '',
-      source: '',
-      owner: '',
-      state: 'new',
-      paid: false,
-    });
-    setImageFile(null);
-    setLoading(false);
-  };
-
-  const getImageUrl = async (path) => {
-    try {
-      const { publicURL, error } = await supabase
-        .storage
-        .from('images')
-        .getPublicUrl(path);
-
-      if (error) {
-        console.error('Error getting image URL:', error.message);
-        return null;
-      }
-
-      console.log('publicURL', publicURL);
-      //return publicURL;
-      let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/"+path;
-      console.log(a);
-      return a;
-    } catch (error) {
-      console.error('Error with getting public URL:', error.message);
-      return null;
-    }
-  };
-
-  async function uploadImage(file) {
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExtension}`;
-    const filePath = `${fileName}`;
-  
-    const { data, error } = await supabase.storage
-      .from('images') // Make sure this bucket exists in your Supabase project
-      .upload(filePath, file);
-  
-    if (error) {
-      throw new Error(error.message);
-    }
-  
-    // Return the file path if you want to save the path in the database
-    // This path is how you will reference the image in your Supabase Storage
-    return filePath;
-  }
-  
   const handleEdit = (order) => {
     setEditOrderId(order.id);
-    setFormData({
+    setEditFormData({
       name: order.name,
       member: order.member,
       source: order.source,
@@ -173,10 +53,41 @@ function HomePage() {
     });
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files.length) {
-      setImageFile(e.target.files[0]);
+  const handleSave = async (orderId) => {
+    setLoading(true);
+
+    const updatedData = { ...editFormData };
+
+    const { error } = await supabase
+      .from('orders')
+      .update(updatedData)
+      .match({ id: orderId });
+
+    if (error) {
+      console.error(error.message);
+    } else {
+      const updatedOrderIndex = orders.findIndex(order => order.id === orderId);
+      if (updatedOrderIndex > -1) {
+        // Create a new orders array with the updated order
+        const updatedOrders = [...orders];
+        updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...editFormData };
+        setOrders(updatedOrders);
+      }
     }
+    setEditOrderId(null);
+    setLoading(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditOrderId(null);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handleDelete = async (orderId) => {
@@ -223,27 +134,46 @@ function HomePage() {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+  const getImageUrl = async (path) => {
+    try {
+      const { publicURL, error } = await supabase
+        .storage
+        .from('images')
+        .getPublicUrl(path);
+
+      if (error) {
+        console.error('Error getting image URL:', error.message);
+        return null;
+      }
+
+      console.log('publicURL', publicURL);
+      //return publicURL;
+      let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/"+path;
+      console.log(a);
+      return a;
+    } catch (error) {
+      console.error('Error with getting public URL:', error.message);
+      return null;
+    }
   };
 
-  const handleDiscardChanges = () => {
-    // Reset the form data to empty or initial values
-    setFormData({
-      name: '',
-      member: '',
-      source: '',
-      owner: '',
-      state: 'new',
-      paid: false,
-    });
-    setImageFile(null);
-    setEditOrderId(null); // Clear edit mode
-  };
+  async function uploadImage(file) {
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExtension}`;
+    const filePath = `${fileName}`;
+  
+    const { data, error } = await supabase.storage
+      .from('images') // Make sure this bucket exists in your Supabase project
+      .upload(filePath, file);
+  
+    if (error) {
+      throw new Error(error.message);
+    }
+  
+    // Return the file path if you want to save the path in the database
+    // This path is how you will reference the image in your Supabase Storage
+    return filePath;
+  }
 
   if (loading) return <p>Loading...</p>;
 
@@ -258,139 +188,118 @@ function HomePage() {
             <table className={styles.table}>
               <thead>
                 <tr className={styles.tr}>
-                  <th className={styles.th}>Thumbnail</th>
-                  <th className={styles.th}>Name</th>
-                  <th className={styles.th}>Member</th>
-                  <th className={styles.th}>Source</th>
-                  <th className={styles.th}>Owner</th>
-                  <th className={styles.th}>Date</th>
-                  <th className={styles.th}>State</th>
-                  <th className={styles.th}>Paid</th>
-                  <th className={styles.th}>Actions</th>
+                  <th className={`${styles.th} ${styles["col-thumbnail"]}`}>Thumbnail</th>
+                  <th className={`${styles.th} ${styles["col-name"]}`}>Name</th>
+                  <th className={`${styles.th} ${styles["col-member"]}`}>Member</th>
+                  <th className={`${styles.th} ${styles["col-source"]}`}>Source</th>
+                  <th className={`${styles.th} ${styles["col-owner"]}`}>Owner</th>
+                  <th className={`${styles.th} ${styles["col-date"]}`}>Date</th>
+                  <th className={`${styles.th} ${styles["col-state"]}`}>State</th>
+                  <th className={`${styles.th} ${styles["col-paid"]}`}>Paid</th>
+                  <th className={`${styles.th} ${styles["col-actions"]}`}>Actions</th>
                 </tr>
               </thead>
               <tbody className={styles.tbody}>
                 {orders.map((order) => (
-                  <tr key={order.id} className={styles.tr}>
-                    <td className={styles.td}>
+                  <tr key={order.id} className={editOrderId === order.id ? styles["tr--editing"] : styles.tr}>
+                    <td className={`${styles.td} ${styles["col-thumbnail"]}`}>
                       {order.imageUrl && (
                         <img src={order.imageUrl} alt="Order Thumbnail" className={styles.thumbnail} />
                       )}
                     </td>
-                    <td className={styles.td}>{order.name}</td>
-                    <td className={styles.td}>{order.member}</td>
-                    <td className={styles.td}>{order.source}</td>
-                    <td className={styles.td}>{order.owner}</td>
-                    <td className={styles.td}>{new Date(order.date).toLocaleDateString()}</td>
-                    <td className={styles.td}>{order.state}</td>
-                    <td className={styles.td}>{order.paid ? 'Yes' : 'No'}</td>
-                    <td className={styles.td}>
-                      <button onClick={() => handleEdit(order)} className={styles.button}>Edit</button>
-                      <button onClick={() => handleDelete(order.id)} className={styles.button}>Delete</button>
-                    </td>
+                    {editOrderId === order.id ? (
+                      <>
+                        <td className={`${styles.td} ${styles["col-name"]}`}>
+                          <input
+                            type="text"
+                            name="name"
+                            value={editFormData.name}
+                            onChange={handleInputChange}
+                            className={styles.input}
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles["col-member"]}`}>
+                          <input
+                            type="text"
+                            name="member"
+                            value={editFormData.member}
+                            onChange={handleInputChange}
+                            className={styles.input}
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles["col-source"]}`}>
+                          <input
+                            type="text"
+                            name="source"
+                            value={editFormData.source}
+                            onChange={handleInputChange}
+                            className={styles.input}
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles["col-owner"]}`}>
+                          <input
+                            type="text"
+                            name="owner"
+                            value={editFormData.owner}
+                            onChange={handleInputChange}
+                            className={styles.input}
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles["col-date"]}`}>
+                          {new Date(order.date).toLocaleDateString()}
+                        </td>
+                        <td className={`${styles.td} ${styles["col-state"]}`}>
+                          <select
+                            name="state"
+                            value={editFormData.state}
+                            onChange={handleInputChange}
+                            className={styles.input}
+                          >
+                            <option value="new">New</option>
+                            <option value="pending">Pending</option>
+                            <option value="otw">OTW</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                        </td>
+                        <td className={`${styles.td} ${styles["col-paid"]}`}>
+                          <input
+                            type="checkbox"
+                            name="paid"
+                            checked={editFormData.paid}
+                            onChange={handleInputChange}
+                            className={styles.checkbox}
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles["col-actions"]}`}>
+                          <button onClick={() => handleSave(order.id)} className={`${styles.button} ${styles["button--save"]}`}>Save</button>
+                          <button onClick={handleCancelEdit} className={`${styles.button} ${styles["button--discard"]}`}>Cancel</button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className={`${styles.td} ${styles["col-name"]}`}>{order.name}</td>
+                        <td className={`${styles.td} ${styles["col-member"]}`}>{order.member}</td>
+                        <td className={`${styles.td} ${styles["col-source"]}`}>{order.source}</td>
+                        <td className={`${styles.td} ${styles["col-owner"]}`}>{order.owner}</td>
+                        <td className={`${styles.td} ${styles["col-date"]}`}>{new Date(order.date).toLocaleDateString()}</td>
+                        <td className={`${styles.td} ${styles["col-state"]}`}>{order.state}</td>
+                        <td className={`${styles.td} ${styles["col-paid"]}`}>{order.paid ? 'Yes' : 'No'}</td>
+                        <td className={`${styles.td} ${styles["col-actions"]}`}>
+                          <button onClick={() => handleEdit(order)} className={styles.button}>Edit</button>
+                          <button onClick={() => handleDelete(order.id)} className={styles.button}>Delete</button>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <h2 className={styles.h2}>{editOrderId ? 'Edit Order' : 'Add a New Order'}</h2>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Order Name"
-                required
-                className={styles.input}
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                name="member"
-                value={formData.member}
-                onChange={handleInputChange}
-                placeholder="Member"
-                required
-                className={styles.input}
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                name="source"
-                value={formData.source}
-                onChange={handleInputChange}
-                placeholder="Source"
-                required
-                className={styles.input}
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                name="owner"
-                value={formData.owner}
-                onChange={handleInputChange}
-                placeholder="Owner"
-                required
-                className={styles.input}
-              />
-            </div>
-            <div>
-              <select
-                name="state"
-                value={formData.state}
-                onChange={handleInputChange}
-                required
-                className={styles.input}
-              >
-                <option value="new">New</option>
-                <option value="processing">Processing</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div>
-              <label className={styles.checkboxLabel}>
-                Paid:
-                <input
-                  type="checkbox"
-                  name="paid"
-                  checked={formData.paid}
-                  onChange={handleInputChange}
-                  className={styles.checkbox}
-                />
-              </label>
-            </div>
-            {!editOrderId && (
-              <div>
-                <input
-                  type="file"
-                  name="image"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className={styles.input}
-                />
-              </div>
-            )}
-            <div>
-              {editOrderId && (
-                <button type="button" onClick={handleDiscardChanges} className={`${styles.button} ${styles.buttonDiscard}`}>
-                  Discard Changes
-                </button>
-              )}
-              <button type="submit" className={`${styles.button} ${styles.buttonSave}`}>
-                {editOrderId ? 'Save Changes' : 'Add Order'}
-              </button>
-            </div>
-          </form>
         </>
       )}
     </div>
   );
+  
 }
 
 export default HomePage;
