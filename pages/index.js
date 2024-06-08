@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import supabase from '../data/supabaseClient'; // Make sure to adjust the path
 import styles from '../styles/HomePage.module.css'; // Adjust the path according to your file structure
 
-
 function HomePage() {
   const [orders, setOrders] = useState([]);
   const [editOrderId, setEditOrderId] = useState(null);
@@ -165,19 +164,43 @@ function HomePage() {
     }
   };
 
-  
   const handleDelete = async (orderId) => {
     console.log('delete', orderId);
   
     try {
-      const { data, error } = await supabase
+      // Get the image path before deleting the order
+      const { data: orderData, error: fetchError } = await supabase
+        .from('orders')
+        .select('image_path')
+        .eq('id', orderId)
+        .single();
+  
+      if (fetchError) {
+        throw fetchError;
+      }
+  
+      // Delete the order
+      const { error: deleteError } = await supabase
         .from('orders')
         .delete()
         .match({ id: orderId });
+      
+      if (deleteError) {
+        throw deleteError;
+      }
   
-      if (error) throw error;
+      // Delete the image from storage if it exists
+      if (orderData && orderData.image_path) {
+        const { error: storageError } = await supabase
+          .storage
+          .from('images')
+          .remove([orderData.image_path]);
   
-      console.log('Deleted data:', data);
+        if (storageError) {
+          throw storageError;
+        }
+      }
+  
       // Update the local state to reflect the deletion
       setOrders(orders.filter(order => order.id !== orderId));
     } catch (error) {
@@ -196,7 +219,7 @@ function HomePage() {
     setImageFile(null);
     setEditOrderId(null); // Clear edit mode
   };
-
+  
   if (loading) return <p>Loading...</p>;
 
   return (
