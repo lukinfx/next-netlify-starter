@@ -213,7 +213,7 @@ function HomePage() {
                     {editOrderId === order.id ? (
                       <>
                         <td className={`${styles.td} ${styles["col-name"]}`}>
-                          <input
+                          <textarea
                             type="text"
                             name="name"
                             value={editFormData.name}
@@ -222,7 +222,7 @@ function HomePage() {
                           />
                         </td>
                         <td className={`${styles.td} ${styles["col-member"]}`}>
-                          <input
+                          <textarea
                             type="text"
                             name="member"
                             value={editFormData.member}
@@ -231,7 +231,7 @@ function HomePage() {
                           />
                         </td>
                         <td className={`${styles.td} ${styles["col-source"]}`}>
-                          <input
+                          <textarea
                             type="text"
                             name="source"
                             value={editFormData.source}
@@ -240,16 +240,15 @@ function HomePage() {
                           />
                         </td>
                         <td className={`${styles.td} ${styles["col-note"]}`}>
-                          <input
-                            type="text"
+                          <textarea
                             name="note"
                             value={editFormData.note}
                             onChange={handleInputChange}
-                            className={styles.input}
+                            className={styles.textarea}
                           />
                         </td>
                         <td className={`${styles.td} ${styles["col-owner"]}`}>
-                          <input
+                          <textarea
                             type="text"
                             name="owner"
                             value={editFormData.owner}
@@ -312,7 +311,6 @@ function HomePage() {
       )}
     </div>
   );
-  
 }
 
 export default HomePage;

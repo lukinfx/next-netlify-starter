@@ -1,8 +1,12 @@
 /* Existing CSS */
 .container {
-  max-width: 800px;
+  max-width:100%;
+  width: 100%;
   margin: auto;
-  padding: 20px;
+  display: flex;
+  flex-direction: column; /* Arrange children in a column */
+  justify-content: center; /* Centers horizontally */
+  align-items: center; /* Centers vertically */
 }
 
 .h1, .h2 {
@@ -25,12 +29,17 @@
   overflow: hidden;
 }
 
-.table input[type="text"], .table select, .table input[type="checkbox"] {
+.table input[type="text"], .table select, .table input[type="checkbox"], .table textarea {
   width: 100%;
-  padding: 4px;
+  padding: 10px; /* Increased padding */
   box-sizing: border-box;
   font-size: 16px;
-  margin: 4px 0;
+  margin: 8px 0; /* Increased margin */
+}
+
+.table textarea {
+  resize: vertical; /* Allows vertical resizing only */
+  height: 100px; /* Default height */
 }
 
 .td {
@@ -94,8 +103,8 @@
   height: auto;
 }
 
-.input, .select {
-  width: calc(100%);
+.input, .select, .textarea {
+  width: calc(100% - 20px); /* Adjust for padding */
   padding: 14px 20px;
   margin: 8px 5px;
   display: inline-block;
@@ -126,7 +135,7 @@
     padding: 10px;
   }
 
-  .input, .select, .button {
+  .input, .select, .button, .textarea {
     width: 150%;
   }
 
