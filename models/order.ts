@@ -8,5 +8,6 @@
     date: string; // ISO string format for simplicity
     state: 'new' | 'pending' | 'otw' | 'completed';
     paid: boolean;
+    note: string;
   }
   

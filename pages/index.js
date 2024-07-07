@@ -9,6 +9,7 @@ function HomePage() {
     name: '',
     member: '',
     source: '',
+    note: '',
     owner: '',
     state: 'new',
     paid: false,
@@ -47,9 +48,10 @@ function HomePage() {
       name: order.name,
       member: order.member,
       source: order.source,
+      note: order.note,
       owner: order.owner,
       state: order.state,
-      paid: order.paid,
+      paid: order.paid
     });
   };
 
@@ -189,9 +191,10 @@ function HomePage() {
               <thead>
                 <tr className={styles.tr}>
                   <th className={`${styles.th} ${styles["col-thumbnail"]}`}>Thumbnail</th>
-                  <th className={`${styles.th} ${styles["col-name"]}`}>Name</th>
+                  <th className={`${styles.th} ${styles["col-name"]}`}>Group</th>
                   <th className={`${styles.th} ${styles["col-member"]}`}>Member</th>
                   <th className={`${styles.th} ${styles["col-source"]}`}>Source</th>
+                  <th className={`${styles.th} ${styles["col-note"]}`}>Note</th>
                   <th className={`${styles.th} ${styles["col-owner"]}`}>Owner</th>
                   <th className={`${styles.th} ${styles["col-date"]}`}>Date</th>
                   <th className={`${styles.th} ${styles["col-state"]}`}>State</th>
@@ -232,6 +235,15 @@ function HomePage() {
                             type="text"
                             name="source"
                             value={editFormData.source}
+                            onChange={handleInputChange}
+                            className={styles.input}
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles["col-note"]}`}>
+                          <input
+                            type="text"
+                            name="note"
+                            value={editFormData.note}
                             onChange={handleInputChange}
                             className={styles.input}
                           />
@@ -280,6 +292,7 @@ function HomePage() {
                         <td className={`${styles.td} ${styles["col-name"]}`}>{order.name}</td>
                         <td className={`${styles.td} ${styles["col-member"]}`}>{order.member}</td>
                         <td className={`${styles.td} ${styles["col-source"]}`}>{order.source}</td>
+                        <td className={`${styles.td} ${styles["col-note"]}`}>{order.note}</td>
                         <td className={`${styles.td} ${styles["col-owner"]}`}>{order.owner}</td>
                         <td className={`${styles.td} ${styles["col-date"]}`}>{new Date(order.date).toLocaleDateString()}</td>
                         <td className={`${styles.td} ${styles["col-state"]}`}>{order.state}</td>
