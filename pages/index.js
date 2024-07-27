@@ -248,8 +248,10 @@ function HomePage() {
                     <td className={`${styles.td} ${styles["col-state"]}`} data-label="State">{order.state}</td>
                     <td className={`${styles.td} ${styles["col-paid"]}`} data-label="Paid">{order.paid ? 'Yes' : 'No'}</td>
                     <td className={`${styles.td} ${styles["col-actions"]}`} data-label="Actions">
-                      <button onClick={() => handleEditOrder(order)} className={styles.button}>Edit</button>
-                      <button onClick={() => handleConfirmDelete(order.id)} className={styles.button}>Delete</button>
+                      <div className={styles.buttonContainer}>
+                        <button onClick={() => handleEditOrder(order)} className={`${styles.button} ${styles.inlineButton}`}>Edit</button>
+                        <button onClick={() => handleConfirmDelete(order.id)} className={`${styles.button} ${styles.inlineButton}`}>Delete</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
