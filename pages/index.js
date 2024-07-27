@@ -1,5 +1,6 @@
+// Updated JSX structure for the table
 import { useEffect, useState } from 'react';
-import supabase from '../data/supabaseClient'; // Make sure to adjust the path
+import supabase from '../data/supabaseClient'; // Adjust the path according to your file structure
 import styles from '../styles/HomePage.module.css'; // Adjust the path according to your file structure
 import OrderFormOverlay from '../components/orderFromOverlay';
 import ConfirmationModal from '../components/confirmationModal';
@@ -66,6 +67,16 @@ function HomePage() {
 
         if (error) {
           throw error;
+        } else {
+          const updatedOrderIndex = orders.findIndex(order => order.id === currentOrder.id);
+          if (updatedOrderIndex > -1) {
+            const updatedOrders = [...orders];
+            updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...orderData };
+            if (orderData.image_path) {
+              updatedOrders[updatedOrderIndex].imageUrl = await getImageUrl(orderData.image_path);
+            }
+            setOrders(updatedOrders);
+          }
         }
       } else {
         // Add new order
@@ -75,6 +86,12 @@ function HomePage() {
 
         if (error) {
           throw error;
+        } else if (data && data.length > 0) {
+          const newOrder = data[0];
+          const imageUrl = await getImageUrl(newOrder.image_path);
+          setOrders([...orders, { ...newOrder, imageUrl }]);
+        } else {
+          console.error('No data returned from insert query.');
         }
       }
     } catch (error) {

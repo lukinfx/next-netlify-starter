@@ -6,7 +6,7 @@
     source: string;
     owner: string;
     date: string; // ISO string format for simplicity
-    state: 'new' | 'pending' | 'otw' | 'completed';
+    state: 'New' | 'Pending' | 'OTW' | 'Completed';
     paid: boolean;
     note: string;
   }

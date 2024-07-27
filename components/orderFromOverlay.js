@@ -102,10 +102,10 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               onChange={handleInputChange}
               className={styles.select}
             >
-              <option value="new">New</option>
-              <option value="pending">Pending</option>
-              <option value="otw">OTW</option>
-              <option value="completed">Completed</option>
+              <option value="New">New</option>
+              <option value="Pending">Pending</option>
+              <option value="OTW">OTW</option>
+              <option value="Completed">Completed</option>
             </select>
           </label>
           <div className={styles.checkboxLabel}>

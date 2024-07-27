@@ -1,6 +1,6 @@
 /* Existing CSS */
 .container {
-  max-width:100%;
+  max-width: 100%;
   width: 100%;
   margin: auto;
   display: flex;
@@ -24,7 +24,7 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -44,7 +44,7 @@
 
 .td {
   text-align: left;
-  padding: 16px 24px;
+  padding: 16px 12px; /* Adjusted padding */
   box-sizing: border-box;
   border-bottom: 1px solid #eee;
   font-family: Arial, Helvetica, sans-serif;
@@ -52,7 +52,7 @@
 
 .th {
   text-align: left;
-  padding: 16px 24px;
+  padding: 16px 12px; /* Adjusted padding */
   box-sizing: border-box;
   border-bottom: 1px solid #eee;
   font-family: Arial, Helvetica, sans-serif;
@@ -158,11 +158,15 @@
 }
 
 .col-source {
-  width: 10%;
+  width: 15%;
+}
+
+.col-note {
+  width: 20%;
 }
 
 .col-owner {
-  width: 15%;
+  width: 10%;
 }
 
 .col-date {
@@ -170,7 +174,7 @@
 }
 
 .col-state {
-  width: 30%;
+  width: 10%;
 }
 
 .col-paid {
@@ -178,5 +182,5 @@
 }
 
 .col-actions {
-  width: 15%;
+  width: 10%;
 }
