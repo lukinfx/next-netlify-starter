@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import supabase from '../data/supabaseClient'; // Make sure to adjust the path
 import styles from '../styles/HomePage.module.css'; // Adjust the path according to your file structure
-import OrderFormOverlay from '../pages/orderFromOverlay';
-import ConfirmationModal from '../pages/confirmationModal';
+import OrderFormOverlay from '../components/orderFromOverlay';
+import ConfirmationModal from '../components/confirmationModal';
 
 function HomePage() {
   const [orders, setOrders] = useState([]);
@@ -14,28 +14,28 @@ function HomePage() {
 
   // Fetch orders from Supabase
   useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      let { data: orders, error } = await supabase.from('orders').select('*').order('date');
-    
-      if (error) {
-        console.error(error.message);
-      } else {
-        // Get URLs for each order's image
-        const ordersWithImages = await Promise.all(orders.map(async (order) => {
-          if (order.image_path) {
-            order.imageUrl = await getImageUrl(order.image_path);
-          }
-          return order;
-        }));
-    
-        setOrders(ordersWithImages);
-      }
-      setLoading(false);
-    };
-    
     fetchOrders();
   }, []);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    let { data: orders, error } = await supabase.from('orders').select('*').order('date');
+
+    if (error) {
+      console.error(error.message);
+    } else {
+      // Get URLs for each order's image
+      const ordersWithImages = await Promise.all(orders.map(async (order) => {
+        if (order.image_path) {
+          order.imageUrl = await getImageUrl(order.image_path);
+        }
+        return order;
+      }));
+
+      setOrders(ordersWithImages);
+    }
+    setLoading(false);
+  };
 
   const handleCreateNewOrder = () => {
     setCurrentOrder(null);
@@ -66,16 +66,6 @@ function HomePage() {
 
         if (error) {
           throw error;
-        } else {
-          const updatedOrderIndex = orders.findIndex(order => order.id === currentOrder.id);
-          if (updatedOrderIndex > -1) {
-            const updatedOrders = [...orders];
-            updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...orderData };
-            if (orderData.image_path) {
-              updatedOrders[updatedOrderIndex].imageUrl = await getImageUrl(orderData.image_path);
-            }
-            setOrders(updatedOrders);
-          }
         }
       } else {
         // Add new order
@@ -85,12 +75,6 @@ function HomePage() {
 
         if (error) {
           throw error;
-        } else if (data && data.length > 0) {
-          const newOrder = data[0];
-          const imageUrl = await getImageUrl(newOrder.image_path);
-          setOrders([...orders, { ...newOrder, imageUrl }]);
-        } else {
-          console.error('No data returned from insert query.');
         }
       }
     } catch (error) {
@@ -98,6 +82,7 @@ function HomePage() {
     } finally {
       setIsFormOpen(false);
       setLoading(false);
+      fetchOrders(); // Fetch the orders again after saving
     }
   };
 
