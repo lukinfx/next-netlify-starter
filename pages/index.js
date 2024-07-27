@@ -1,14 +1,16 @@
-// pages/orders.js
 import { useEffect, useState } from 'react';
 import supabase from '../data/supabaseClient'; // Make sure to adjust the path
 import styles from '../styles/HomePage.module.css'; // Adjust the path according to your file structure
 import OrderFormOverlay from '../pages/orderFromOverlay';
+import ConfirmationModal from '../pages/confirmationModal';
 
 function HomePage() {
   const [orders, setOrders] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
 
   // Fetch orders from Supabase
   useEffect(() => {
@@ -47,21 +49,21 @@ function HomePage() {
 
   const handleSaveOrder = async (orderData, imageFile) => {
     setLoading(true);
-  
+
     try {
       if (imageFile) {
         // Upload the image
         const filePath = await uploadImage(imageFile);
         orderData.image_path = filePath;
       }
-  
+
       if (currentOrder) {
         // Edit existing order
         const { error } = await supabase
           .from('orders')
           .update(orderData)
           .match({ id: currentOrder.id });
-  
+
         if (error) {
           throw error;
         } else {
@@ -80,12 +82,13 @@ function HomePage() {
         const { data, error } = await supabase
           .from('orders')
           .insert([orderData]);
-  
+
         if (error) {
           throw error;
         } else if (data && data.length > 0) {
-          const imageUrl = await getImageUrl(data[0].image_path);
-          setOrders([...orders, { ...data[0], imageUrl }]);
+          const newOrder = data[0];
+          const imageUrl = await getImageUrl(newOrder.image_path);
+          setOrders([...orders, { ...newOrder, imageUrl }]);
         } else {
           console.error('No data returned from insert query.');
         }
@@ -97,24 +100,69 @@ function HomePage() {
       setLoading(false);
     }
   };
-  
-  async function uploadImage(file) {
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExtension}`;
-    const filePath = `${fileName}`;
-  
-    const { data, error } = await supabase.storage
-      .from('images') // Make sure this bucket exists in your Supabase project
-      .upload(filePath, file);
-  
-    if (error) {
-      throw new Error(error.message);
+
+  const handleDelete = async (orderId) => {
+    setLoading(true);
+    try {
+      // Get the image path before deleting the order
+      const { data: orderData, error: fetchError } = await supabase
+        .from('orders')
+        .select('image_path')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      // Delete the order
+      const { error: deleteError } = await supabase
+        .from('orders')
+        .delete()
+        .match({ id: orderId });
+      
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      // Delete the image from storage if it exists
+      if (orderData && orderData.image_path) {
+        const { error: storageError } = await supabase
+          .storage
+          .from('images')
+          .remove([orderData.image_path]);
+
+        if (storageError) {
+          throw storageError;
+        }
+      }
+
+      // Update the local state to reflect the deletion
+      setOrders(orders.filter(order => order.id !== orderId));
+    } catch (error) {
+      console.error('Error deleting order:', error);
+    } finally {
+      setLoading(false);
     }
-  
-    // Return the file path if you want to save the path in the database
-    // This path is how you will reference the image in your Supabase Storage
-    return filePath;
-  }
+  };
+
+  const handleConfirmDelete = (orderId) => {
+    setOrderToDelete(orderId);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (orderToDelete) {
+      handleDelete(orderToDelete);
+      setOrderToDelete(null);
+    }
+    setIsConfirmOpen(false);
+  };
+
+  const cancelDelete = () => {
+    setOrderToDelete(null);
+    setIsConfirmOpen(false);
+  };
 
   const getImageUrl = async (path) => {
     try {
@@ -129,8 +177,7 @@ function HomePage() {
       }
 
       console.log('publicURL', publicURL);
-      //return publicURL;
-      let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/"+path;
+      let a = "https://fgfgtmxgucfwtmzsfahz.supabase.co/storage/v1/object/public/images/" + path;
       console.log(a);
       return a;
     } catch (error) {
@@ -138,6 +185,24 @@ function HomePage() {
       return null;
     }
   };
+
+  async function uploadImage(file) {
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExtension}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('images') // Make sure this bucket exists in your Supabase project
+      .upload(filePath, file);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Return the file path if you want to save the path in the database
+    // This path is how you will reference the image in your Supabase Storage
+    return filePath;
+  }
 
   if (loading) return <p>Loading...</p>;
 
@@ -183,7 +248,7 @@ function HomePage() {
                     <td className={`${styles.td} ${styles["col-paid"]}`}>{order.paid ? 'Yes' : 'No'}</td>
                     <td className={`${styles.td} ${styles["col-actions"]}`}>
                       <button onClick={() => handleEditOrder(order)} className={styles.button}>Edit</button>
-                      <button onClick={() => handleDelete(order.id)} className={styles.button}>Delete</button>
+                      <button onClick={() => handleConfirmDelete(order.id)} className={styles.button}>Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -197,6 +262,12 @@ function HomePage() {
         onClose={() => setIsFormOpen(false)}
         onSave={handleSaveOrder}
         initialData={currentOrder}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this order?"
       />
     </div>
   );
