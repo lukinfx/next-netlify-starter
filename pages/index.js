@@ -242,7 +242,7 @@ function HomePage() {
                     <td className={`${styles.td} ${styles["col-name"]}`} data-label="Group">{order.name}</td>
                     <td className={`${styles.td} ${styles["col-member"]}`} data-label="Member">{order.member}</td>
                     <td className={`${styles.td} ${styles["col-source"]}`} data-label="Source">{order.source}</td>
-                    <td className={`${styles.td} ${styles["col-note"]}`} data-label="Note">{order.note}</td>
+                    <td className={`${styles.td} ${styles["col-note"]}`} data-label="Note">{order.note || '\u200B'}</td>
                     <td className={`${styles.td} ${styles["col-owner"]}`} data-label="Owner">{order.owner}</td>
                     <td className={`${styles.td} ${styles["col-date"]}`} data-label="Date">{new Date(order.date).toLocaleDateString()}</td>
                     <td className={`${styles.td} ${styles["col-state"]}`} data-label="State">{order.state}</td>
