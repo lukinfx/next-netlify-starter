@@ -43,9 +43,9 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
   return (
     <div className={styles.overlay}>
       <div className={styles.overlayContent}>
-        <h2>{initialData ? 'Edit Order' : 'New Order'}</h2>
-        <form onSubmit={handleSubmit}>
-          <label>
+        <h2 className={styles.h2}>{initialData ? 'Edit Order' : 'New Order'}</h2>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <label className={styles.label}>
             Group:
             <input
               type="text"
@@ -55,7 +55,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               className={styles.input}
             />
           </label>
-          <label>
+          <label className={styles.label}>
             Member:
             <input
               type="text"
@@ -65,7 +65,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               className={styles.input}
             />
           </label>
-          <label>
+          <label className={styles.label}>
             Source:
             <input
               type="text"
@@ -75,7 +75,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               className={styles.input}
             />
           </label>
-          <label>
+          <label className={styles.label}>
             Note:
             <textarea
               name="note"
@@ -84,7 +84,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               className={styles.textarea}
             />
           </label>
-          <label>
+          <label className={styles.label}>
             Owner:
             <input
               type="text"
@@ -94,13 +94,13 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               className={styles.input}
             />
           </label>
-          <label>
+          <label className={styles.label}>
             State:
             <select
               name="state"
               value={formData.state}
               onChange={handleInputChange}
-              className={styles.input}
+              className={styles.select}
             >
               <option value="new">New</option>
               <option value="pending">Pending</option>
@@ -108,8 +108,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               <option value="completed">Completed</option>
             </select>
           </label>
-          <label>
-            Paid:
+          <div className={styles.checkboxLabel}>
             <input
               type="checkbox"
               name="paid"
@@ -117,8 +116,9 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               onChange={handleInputChange}
               className={styles.checkbox}
             />
-          </label>
-          <label>
+            <label>Paid</label>
+          </div>
+          <label className={styles.label}>
             Photo:
             <input
               type="file"
@@ -128,7 +128,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
           </label>
           <div className={styles.actions}>
             <button type="submit" className={styles.button}>Save</button>
-            <button type="button" onClick={onClose} className={styles.button}>Cancel</button>
+            <button type="button" onClick={onClose} className={`${styles.button} ${styles.cancelButton}`}>Cancel</button>
           </div>
         </form>
       </div>
