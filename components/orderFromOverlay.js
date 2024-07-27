@@ -18,8 +18,18 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
     if (initialData) {
       setFormData(initialData);
       setImageFile(null); // Reset image file when editing an order
+    } else {
+      setFormData({
+        name: '',
+        member: '',
+        source: '',
+        note: '',
+        owner: '',
+        state: 'new',
+        paid: false,
+      });
     }
-  }, [initialData]);
+  }, [initialData, isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -102,10 +112,10 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               onChange={handleInputChange}
               className={styles.select}
             >
-              <option value="New">New</option>
-              <option value="Pending">Pending</option>
-              <option value="OTW">OTW</option>
-              <option value="Completed">Completed</option>
+              <option value="new">New</option>
+              <option value="pending">Pending</option>
+              <option value="otw">OTW</option>
+              <option value="completed">Completed</option>
             </select>
           </label>
           <div className={styles.checkboxLabel}>

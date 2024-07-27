@@ -1,4 +1,3 @@
-// Updated JSX structure for the table
 import { useEffect, useState } from 'react';
 import supabase from '../data/supabaseClient'; // Adjust the path according to your file structure
 import styles from '../styles/HomePage.module.css'; // Adjust the path according to your file structure
