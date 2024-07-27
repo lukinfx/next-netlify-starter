@@ -4,9 +4,9 @@
   width: 100%;
   margin: auto;
   display: flex;
-  flex-direction: column; /* Arrange children in a column */
-  justify-content: center; /* Centers horizontally */
-  align-items: center; /* Centers vertically */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .h1, .h2 {
@@ -20,6 +20,11 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* Allow horizontal scrolling */
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -31,20 +36,20 @@
 
 .table input[type="text"], .table select, .table input[type="checkbox"], .table textarea {
   width: 100%;
-  padding: 10px; /* Increased padding */
+  padding: 10px;
   box-sizing: border-box;
   font-size: 16px;
-  margin: 8px 0; /* Increased margin */
+  margin: 8px 0;
 }
 
 .table textarea {
-  resize: vertical; /* Allows vertical resizing only */
-  height: 100px; /* Default height */
+  resize: vertical;
+  height: 100px;
 }
 
 .td {
   text-align: left;
-  padding: 16px 12px; /* Adjusted padding */
+  padding: 12px 16px;
   box-sizing: border-box;
   border-bottom: 1px solid #eee;
   font-family: Arial, Helvetica, sans-serif;
@@ -52,7 +57,7 @@
 
 .th {
   text-align: left;
-  padding: 16px 12px; /* Adjusted padding */
+  padding: 12px 16px;
   box-sizing: border-box;
   border-bottom: 1px solid #eee;
   font-family: Arial, Helvetica, sans-serif;
@@ -69,13 +74,12 @@
   background-color: #f2f2f2;
 }
 
-/* Adjusting the hover effect for better readability */
 .tr:hover .td {
   background-color: #f2f2f2;
 }
 
 .button {
-  background-color: #4CAF50; /* Green */
+  background-color: #4CAF50;
   color: white;
   padding: 10px 20px;
   margin: 10px 5px;
@@ -86,11 +90,11 @@
 }
 
 .button--save {
-  background-color: #4CAF50; /* Green */
+  background-color: #4CAF50;
 }
 
 .button--discard {
-  background-color: #f44336; /* Red */
+  background-color: #f44336;
 }
 
 .button:hover {
@@ -99,12 +103,12 @@
 }
 
 .thumbnail {
-  width: 100px; /* or any other dimensions */
+  width: 100px;
   height: auto;
 }
 
 .input, .select, .textarea {
-  width: calc(100% - 20px); /* Adjust for padding */
+  width: calc(100% - 20px);
   padding: 14px 20px;
   margin: 8px 5px;
   display: inline-block;
@@ -124,19 +128,57 @@
   color: #FF4500;
 }
 
-/* Highlight for the editing row in the table */
 .tr--editing {
   background-color: #eaf1f8;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .container {
     padding: 10px;
   }
 
-  .input, .select, .button, .textarea {
-    width: 150%;
+  .table {
+    display: block; /* Make the table block element */
+    width: 100%;
+  }
+
+  .table-container {
+    overflow-x: auto; /* Allow horizontal scrolling */
+  }
+
+  .table thead, .table tbody, .table th, .table td, .table tr {
+    display: block;
+  }
+
+  .table thead tr {
+    display: none; /* Hide table headers */
+  }
+
+  .table tr {
+    margin-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .table td {
+    padding: 10px 10px;
+    text-align: right;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+  }
+
+  .table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  .button {
+    width: 100%; /* Make buttons full width on mobile */
+    padding: 10px;
   }
 
   .thumbnail {

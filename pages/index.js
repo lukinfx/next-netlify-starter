@@ -234,20 +234,20 @@ function HomePage() {
               <tbody className={styles.tbody}>
                 {orders.map((order) => (
                   <tr key={order.id} className={styles.tr}>
-                    <td className={`${styles.td} ${styles["col-thumbnail"]}`}>
+                    <td className={`${styles.td} ${styles["col-thumbnail"]}`} data-label="Thumbnail">
                       {order.imageUrl && (
                         <img src={order.imageUrl} alt="Order Thumbnail" className={styles.thumbnail} />
                       )}
                     </td>
-                    <td className={`${styles.td} ${styles["col-name"]}`}>{order.name}</td>
-                    <td className={`${styles.td} ${styles["col-member"]}`}>{order.member}</td>
-                    <td className={`${styles.td} ${styles["col-source"]}`}>{order.source}</td>
-                    <td className={`${styles.td} ${styles["col-note"]}`}>{order.note}</td>
-                    <td className={`${styles.td} ${styles["col-owner"]}`}>{order.owner}</td>
-                    <td className={`${styles.td} ${styles["col-date"]}`}>{new Date(order.date).toLocaleDateString()}</td>
-                    <td className={`${styles.td} ${styles["col-state"]}`}>{order.state}</td>
-                    <td className={`${styles.td} ${styles["col-paid"]}`}>{order.paid ? 'Yes' : 'No'}</td>
-                    <td className={`${styles.td} ${styles["col-actions"]}`}>
+                    <td className={`${styles.td} ${styles["col-name"]}`} data-label="Group">{order.name}</td>
+                    <td className={`${styles.td} ${styles["col-member"]}`} data-label="Member">{order.member}</td>
+                    <td className={`${styles.td} ${styles["col-source"]}`} data-label="Source">{order.source}</td>
+                    <td className={`${styles.td} ${styles["col-note"]}`} data-label="Note">{order.note}</td>
+                    <td className={`${styles.td} ${styles["col-owner"]}`} data-label="Owner">{order.owner}</td>
+                    <td className={`${styles.td} ${styles["col-date"]}`} data-label="Date">{new Date(order.date).toLocaleDateString()}</td>
+                    <td className={`${styles.td} ${styles["col-state"]}`} data-label="State">{order.state}</td>
+                    <td className={`${styles.td} ${styles["col-paid"]}`} data-label="Paid">{order.paid ? 'Yes' : 'No'}</td>
+                    <td className={`${styles.td} ${styles["col-actions"]}`} data-label="Actions">
                       <button onClick={() => handleEditOrder(order)} className={styles.button}>Edit</button>
                       <button onClick={() => handleConfirmDelete(order.id)} className={styles.button}>Delete</button>
                     </td>
