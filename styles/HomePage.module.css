@@ -137,47 +137,20 @@
     padding: 10px;
   }
 
-  .table {
-    display: block; /* Make the table block element */
-    width: 100%;
-  }
-
   .table-container {
-    overflow-x: auto; /* Allow horizontal scrolling */
+    overflow-x: auto;
   }
 
-  .table thead, .table tbody, .table th, .table td, .table tr {
-    display: block;
+  .table {
+    min-width: 700px; /* Minimum width for the table to ensure horizontal scrolling */
   }
 
-  .table thead tr {
-    display: none; /* Hide table headers */
-  }
-
-  .table tr {
-    margin-bottom: 10px;
-    border-bottom: 2px solid #ddd;
-  }
-
-  .table td {
-    padding: 10px 10px;
-    text-align: right;
-    border-bottom: 1px solid #ddd;
-    position: relative;
-  }
-
-  .table td:before {
-    content: attr(data-label);
-    position: absolute;
-    left: 0;
-    width: 50%;
-    padding-left: 10px;
-    font-weight: bold;
-    text-align: left;
+  .table th, .table td {
+    padding: 8px 12px; /* Adjust padding for mobile */
   }
 
   .button {
-    width: 100%; /* Make buttons full width on mobile */
+    width: 100%;
     padding: 10px;
   }
 
