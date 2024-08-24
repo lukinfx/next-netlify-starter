@@ -104,30 +104,42 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
               className={styles.input}
             />
           </label>
-          <label className={styles.label}>
-            State:
-            <select
-              name="state"
-              value={formData.state}
-              onChange={handleInputChange}
-              className={styles.select}
-            >
-              <option value="new">New</option>
-              <option value="pending">Pending</option>
-              <option value="otw">OTW</option>
-              <option value="completed">Completed</option>
-            </select>
-          </label>
-          <div className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              name="paid"
-              checked={formData.paid}
-              onChange={handleInputChange}
-              className={styles.checkbox}
-            />
-            <label>Paid</label>
-          </div>
+          <table>
+            <td>
+              <tr>
+                <label className={styles.label}>
+                    State:
+                    <select
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      className={styles.select}
+                    >
+                      <option value="new">New</option>
+                      <option value="pending">Pending</option>
+                      <option value="otw">OTW</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </label>
+                </tr>
+              </td>
+              <td>
+                  <tr>
+                    <label className={styles.label}>
+                    Paid:
+                    </label>
+                    </tr>
+                    <tr>
+                      <input
+                        type="checkbox"
+                        checked={formData.paid}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                    </tr>
+              </td>
+          </table>
+          
           <label className={styles.label}>
             Photo:
             <input
