@@ -27,7 +27,7 @@ function HomePage() {
       // Get URLs for each order's image
       const ordersWithImages = await Promise.all(orders.map(async (order) => {
         if (order.image_path) {
-          order.imageUrl = await getImageUrl(order.image_path);
+          order.image_path = await getImageUrl(order.image_path);
         }
         return order;
       }));
@@ -72,7 +72,7 @@ function HomePage() {
             const updatedOrders = [...orders];
             updatedOrders[updatedOrderIndex] = { ...orders[updatedOrderIndex], ...orderData };
             if (orderData.image_path) {
-              updatedOrders[updatedOrderIndex].imageUrl = await getImageUrl(orderData.image_path);
+              updatedOrders[updatedOrderIndex].image_path = await getImageUrl(orderData.image_path);
             }
             setOrders(updatedOrders);
           }
@@ -235,8 +235,8 @@ function HomePage() {
                 {orders.map((order) => (
                   <tr key={order.id} className={styles.tr}>
                     <td className={`${styles.td} ${styles["col-thumbnail"]}`} data-label="Thumbnail">
-                      {order.imageUrl && (
-                        <img src={order.imageUrl} alt="Order Thumbnail" className={styles.thumbnail} />
+                      {order.image_path && (
+                        <img src={order.image_path} alt="Order Thumbnail" className={styles.thumbnail} />
                       )}
                     </td>
                     <td className={`${styles.td} ${styles["col-name"]}`} data-label="Group">{order.name}</td>
