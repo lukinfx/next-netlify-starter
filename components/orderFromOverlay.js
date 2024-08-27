@@ -132,6 +132,7 @@ const OrderFormOverlay = ({ isOpen, onClose, onSave, initialData }) => {
                     <tr>
                       <input
                         type="checkbox"
+                        name="paid"
                         checked={formData.paid}
                         onChange={handleInputChange}
                         className={styles.checkbox}
